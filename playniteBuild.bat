@@ -1,0 +1,1 @@
+C:\Users\ComradeNF\AppData\Local\Playnite\Toolbox.exe pack "%~dp0bin\Release\net462" "%~dp0bin\Release\net462\pext"

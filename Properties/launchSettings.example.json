@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Playnite Desktop": {
+      "commandName": "Executable",
+      "executablePath": "$(LocalAppData)\\Playnite\\Playnite.DesktopApp.exe",
+      "workingDirectory": "$(LocalAppData)\\Playnite",
+      "nativeDebugging": false
+    }
+  }
+}
