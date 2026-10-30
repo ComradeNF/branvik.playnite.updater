@@ -1,0 +1,15 @@
+# Build outputs and Visual Studio state
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Machine-specific debug profile
+Properties/launchSettings.json
+
+# Temporary test fixtures and local artifacts
+tests/fixtures-*/
+work/
+outputs/
+BranvikBackups/
