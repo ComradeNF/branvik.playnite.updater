@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net462</TargetFramework><UseWPF>true</UseWPF><LangVersion>7.3</LangVersion><AssemblyName>Branvik.EmulatorUpdater</AssemblyName><Version>0.2.0</Version><RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent></PropertyGroup>
+  <PropertyGroup><TargetFramework>net462</TargetFramework><UseWPF>true</UseWPF><LangVersion>7.3</LangVersion><AssemblyName>Branvik.EmulatorUpdater</AssemblyName><Version>0.2.1</Version><RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent></PropertyGroup>
   <ItemGroup><PackageReference Include="PlayniteSDK" Version="6.18.0" /><PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" /><PackageReference Include="SharpCompress" Version="0.48.0" /></ItemGroup>
   <ItemGroup><Reference Include="System.Net.Http" /><Reference Include="System.Web.Extensions" /><None Update="extension.yaml" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
-	<Target Name="PostBuildRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' and '$(SkipPlaynitePackaging)' != 'true' and Exists('playniteBuild.bat')">
-		<Exec Command="call playniteBuild.bat" />
+	<Target Name="PostBuildRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' and '$(SkipPlaynitePackaging)' != 'true'">
+		<Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\scripts\Package.ps1&quot; -BuildDirectory &quot;$(TargetDir).&quot; -OutputDirectory &quot;$(MSBuildProjectDirectory)\outputs&quot;" />
 	</Target>
 </Project>

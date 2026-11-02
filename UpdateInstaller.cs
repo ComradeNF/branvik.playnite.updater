@@ -25,7 +25,9 @@ namespace Branvik.EmulatorUpdater
             AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
             {
                 var requested = new System.Reflection.AssemblyName(args.Name);
-                if (!names.Contains(requested.Name) || (args.RequestingAssembly != null && !names.Contains(args.RequestingAssembly.GetName().Name))) return null;
+                if (!names.Contains(requested.Name)) return null;
+                var requester = args.RequestingAssembly;
+                if (requester != null && requester != typeof(UpdateInstaller).Assembly && !names.Contains(requester.GetName().Name)) return null;
                 var path = Path.Combine(Path.GetDirectoryName(typeof(UpdateInstaller).Assembly.Location), requested.Name + ".dll");
                 return File.Exists(path) ? System.Reflection.Assembly.LoadFrom(path) : null;
             };

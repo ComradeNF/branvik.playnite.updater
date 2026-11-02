@@ -1,7 +1,7 @@
 Id: Branvik.EmulatorUpdater_90ce6139-25c7-4771-9728-47ca18a87a1c
 Name: Branvik Emulator Updater
 Author: ComradeNF
-Version: 0.2.0
+Version: 0.2.1
 Module: Branvik.EmulatorUpdater.dll
 Type: GenericPlugin
 Links:
