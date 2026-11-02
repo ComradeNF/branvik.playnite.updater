@@ -113,30 +113,39 @@ namespace Branvik.EmulatorUpdater
                     {
                         try
                         {
-                        if (!UpdateInstaller.Supported(item.Repository))
+                        string executable = null;
+                        var generic = !UpdateInstaller.Supported(item.Repository);
+                        if (generic)
                         {
-                            item.Status = "Skipped: installation is not yet supported for this emulator";
-                            results.Add(item.Name + ": " + item.Status);
-                            continue;
+                            executable = Choose("Select the installed emulator executable", System.IO.Directory.GetFiles(item.Folder, "*.exe").Select(System.IO.Path.GetFileName).ToList());
+                            if (executable == null) continue;
                         }
-                        UpdateInstaller.ValidateFolder(item.Folder, item.Repository);
-                        UpdateInstaller.SevenZip();
+                        UpdateInstaller.ValidateFolder(item.Folder, item.Repository, executable);
                         item.Status = "Fetching release information…"; grid.Items.Refresh();
                         await UpdateChecker.Check(item, cancellation.Token);
                         if (item.CheckedRelease == null) throw new InvalidOperationException(item.Status);
                         var release = item.CheckedRelease;
-                        var asset = UpdateInstaller.SelectAsset(release, item.Repository);
+                        UpdateChecker.Asset asset;
+                        if (generic)
+                        {
+                            var candidates = (release.assets ?? new List<UpdateChecker.Asset>()).Where(a =>
+                                a.name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) || a.name.EndsWith(".7z", StringComparison.OrdinalIgnoreCase)).ToList();
+                            var chosen = Choose("Select a portable Windows archive for your CPU", candidates.Select(a => a.name).ToList());
+                            if (chosen == null) continue;
+                            asset = candidates.Single(a => a.name == chosen);
+                        }
+                        else asset = UpdateInstaller.SelectAsset(release, item.Repository);
                         if (api.Dialogs.ShowMessage("Emulator: " + item.Name + "\nInstall " + release.tag_name + "?\nArchive: " + asset.name +
                             "\nFolder: " + item.Folder + "\nClose the emulator. Files to be replaced will be backed up in BranvikBackups next to the emulator folder.\n" +
                             (string.IsNullOrEmpty(asset.digest) ? "GitHub did not provide a checksum.\n" : "The SHA-256 checksum will be verified.\n") +
-                            "Settings, firmware, BIOS, memory cards and saves will be preserved.", "Update emulator", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+                            (generic ? "Generic mode replaces EXE/DLL/PDB files and adds missing files. Existing data files are preserved. Some emulators may require manual updates to other resources." : "Settings, firmware, BIOS, memory cards and saves will be preserved."), "Update emulator", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
                         {
                             item.Status = "Skipped by user";
                             results.Add(item.Name + ": " + item.Status);
                             continue;
                         }
                         item.Status = "Downloading and installing…"; grid.Items.Refresh();
-                        var backup = await UpdateInstaller.Install(item.Folder, asset, cancellation.Token, item.Repository);
+                        var backup = await UpdateInstaller.Install(item.Folder, asset, cancellation.Token, item.Repository, executable);
                         item.InstalledTag = release.tag_name;
                         item.Status = "Installed " + release.tag_name;
                         try { plugin.Save(); }
@@ -162,6 +171,21 @@ namespace Branvik.EmulatorUpdater
             window.Closed += (s, e) => cancellation.Cancel();
         }
         private void Commit() { grid.CommitEdit(DataGridEditingUnit.Cell, true); grid.CommitEdit(DataGridEditingUnit.Row, true); plugin.Save(); }
+        private string Choose(string title, List<string> choices)
+        {
+            if (choices.Count == 0) throw new InvalidOperationException("No compatible files found. Only portable ZIP/7z releases and root-level Windows executables are supported.");
+            var dialog = api.Dialogs.CreateWindow(new WindowCreationOptions());
+            dialog.Title = title; dialog.Width = 650; dialog.Height = 350;
+            dialog.Owner = Window.GetWindow(this); dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            var panel = new DockPanel { Margin = new Thickness(16) };
+            var list = new ListBox { ItemsSource = choices };
+            var confirm = new Button { Content = "Select", Margin = new Thickness(0,12,0,0), IsEnabled = false };
+            list.SelectionChanged += (s,e) => confirm.IsEnabled = list.SelectedItem != null;
+            confirm.Click += (s,e) => dialog.DialogResult = true;
+            DockPanel.SetDock(confirm, Dock.Bottom); panel.Children.Add(confirm); panel.Children.Add(list);
+            dialog.Content = panel;
+            return dialog.ShowDialog() == true ? list.SelectedItem as string : null;
+        }
         private sealed class HasSelectionConverter : IValueConverter
         {
             public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

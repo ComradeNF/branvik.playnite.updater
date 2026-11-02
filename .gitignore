@@ -13,3 +13,5 @@ tests/fixtures-*/
 work/
 outputs/
 BranvikBackups/
+
+*.Backup*.tmp

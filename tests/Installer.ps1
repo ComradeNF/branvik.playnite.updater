@@ -10,7 +10,7 @@ Set-Content "$target/pcsx2-qt.exe" 'old'
 Set-Content "$stage/inis/settings.ini" 'archive defaults'
 Set-Content "$target/inis/settings.ini" 'user settings'
 Set-Content "$stage/new.dll" 'new library'
-$backup = [Branvik.EmulatorUpdater.UpdateInstaller]::Apply($stage,$target)
+$backup = [Branvik.EmulatorUpdater.UpdateInstaller]::Apply($stage,$target,$false)
 if ((Get-Content "$target/pcsx2-qt.exe") -ne 'new') { throw 'Replacement failed' }
 if ((Get-Content "$backup/files/pcsx2-qt.exe") -ne 'old') { throw 'Backup failed' }
 if ((Get-Content "$target/inis/settings.ini") -ne 'user settings') { throw 'User data overwritten' }
@@ -30,7 +30,7 @@ Set-Content "$target2/z.dll" 'old-z'
 $lock = [IO.File]::Open("$target2/z.dll",[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
 try {
     $failed = $false
-    try { [Branvik.EmulatorUpdater.UpdateInstaller]::Apply($stage2,$target2) } catch { $failed = $true }
+    try { [Branvik.EmulatorUpdater.UpdateInstaller]::Apply($stage2,$target2,$false) } catch { $failed = $true }
     if (-not $failed) { throw 'Locked file should fail' }
     if ((Get-Content "$target2/a.dll") -ne 'old-a') { throw 'Rollback failed' }
 } finally { $lock.Dispose() }

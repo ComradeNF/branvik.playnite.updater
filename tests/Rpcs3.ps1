@@ -29,7 +29,7 @@ foreach ($relative in $protected) {
 Set-Content "$target/rpcs3.exe" 'old'
 Set-Content "$stage/rpcs3.exe" 'new'
 Set-Content "$stage/Qt6Core.dll" 'library'
-$backup = [Branvik.EmulatorUpdater.UpdateInstaller]::Apply($stage, $target)
+$backup = [Branvik.EmulatorUpdater.UpdateInstaller]::Apply($stage, $target, $false)
 foreach ($relative in $protected) { if ((Get-Content (Join-Path $target $relative)) -ne 'user') { throw "Overwritten: $relative" } }
 if ((Get-Content "$target/rpcs3.exe") -ne 'new') { throw 'Binary not replaced' }
 if ((Get-Content "$backup/files/rpcs3.exe") -ne 'old') { throw 'Backup missing' }
